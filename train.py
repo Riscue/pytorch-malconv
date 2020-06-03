@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 import sys
 import time
-import torch.autograd.Variable as Variable
+import torch.autograd as autograd
 import torch.nn as nn
 import torch.optim as optim
-import torch.utils.data.DataLoader as DataLoader
+import torch.utils.data as data
 import yaml
 
 from src.model import MalConv
@@ -83,10 +83,12 @@ print('\tGoodware Count:', val_table['ground_truth'].value_counts()[0])
 if sample_cnt != 1:
     tr_table = tr_table.sample(n=sample_cnt, random_state=seed)
 
-dataloader = DataLoader(ExeDataset(list(tr_table.index), train_data_path, list(tr_table.ground_truth), first_n_byte),
-                        batch_size=batch_size, shuffle=True, num_workers=use_cpu)
-validloader = DataLoader(ExeDataset(list(val_table.index), valid_data_path, list(val_table.ground_truth), first_n_byte),
-                         batch_size=batch_size, shuffle=False, num_workers=use_cpu)
+dataloader = data.DataLoader(
+    ExeDataset(list(tr_table.index), train_data_path, list(tr_table.ground_truth), first_n_byte),
+    batch_size=batch_size, shuffle=True, num_workers=use_cpu)
+validloader = data.DataLoader(
+    ExeDataset(list(val_table.index), valid_data_path, list(val_table.ground_truth), first_n_byte),
+    batch_size=batch_size, shuffle=False, num_workers=use_cpu)
 
 valid_idx = list(val_table.index)
 del tr_table
@@ -127,10 +129,10 @@ while total_step < max_step:
         cur_batch_size = batch_data[0].size(0)
 
         exe_input = batch_data[0].cuda() if use_gpu else batch_data[0]
-        exe_input = Variable(exe_input.long(), requires_grad=False)
+        exe_input = autograd.Variable(exe_input.long(), requires_grad=False)
 
         label = batch_data[1].cuda() if use_gpu else batch_data[1]
-        label = Variable(label.float(), requires_grad=False)
+        label = autograd.Variable(label.float(), requires_grad=False)
 
         pred = malconv(exe_input)
         loss = bce_loss(pred, label)
