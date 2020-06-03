@@ -18,7 +18,7 @@ from torch.autograd import Variable
 try:
     config_path = sys.argv[1]
     seed = int(sys.argv[2])
-    conf = yaml.load(open(config_path,'r'))
+    conf = yaml.load(open(config_path,'r'), Loader=yaml.FullLoader)
 except:
     print('Usage: python3 run_exp.py <config file path> <seed>')
     sys.exit()
