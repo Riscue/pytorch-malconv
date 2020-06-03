@@ -148,7 +148,7 @@ while total_step < max_step:
         loss.backward()
         adam_optim.step()
         
-        history['tr_loss'].append(loss.cpu().data.numpy()[0])
+        history['tr_loss'].append(loss.cpu().data.numpy())
         history['tr_acc'].extend(list(label.cpu().data.numpy().astype(int)==(sigmoid(pred).cpu().data.numpy()+0.5).astype(int)))
         
         step_cost_time = time.time()-start
@@ -180,7 +180,7 @@ while total_step < max_step:
         pred = malconv(exe_input)
         loss = bce_loss(pred,label)
 
-        history['val_loss'].append(loss.cpu().data.numpy()[0])
+        history['val_loss'].append(loss.cpu().data.numpy())
         history['val_acc'].extend(list(label.cpu().data.numpy().astype(int)==(sigmoid(pred).cpu().data.numpy()+0.5).astype(int)))
         history['val_pred'].append(list(sigmoid(pred).cpu().data.numpy()))
 
