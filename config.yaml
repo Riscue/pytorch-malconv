@@ -2,9 +2,9 @@ exp_name: 'example'
 
 ### Data path
 train_data_path: 'data/train/'                    # Training data
-train_label_path: 'data/example-train-label.csv' # Training label                  
+train_label_path: 'data/train-label.csv' # Training label                  
 valid_data_path: 'data/valid/'                    # Validation Data
-valid_label_path: 'data/example-valid-label.csv' # Validation Label
+valid_label_path: 'data/valid-label.csv' # Validation Label
 
 ### output path
 log_dir: 'log/'
