@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import sys
 import time
+import torch as torch
 import torch.autograd as autograd
 import torch.nn as nn
 import torch.optim as optim
@@ -47,7 +48,6 @@ use_gpu = conf['use_gpu']
 use_cpu = conf['use_cpu']
 learning_rate = conf['learning_rate']
 max_step = conf['max_step']
-test_step = conf['test_step']
 batch_size = conf['batch_size']
 first_n_byte = conf['first_n_byte']
 window_size = conf['window_size']
@@ -150,10 +150,6 @@ while total_step < max_step:
                   end='\r', flush=True)
         total_step += 1
 
-        # Interupt for validation
-        if total_step % test_step == 0:
-            break
-
     # Testing
     history['val_loss'] = []
     history['val_acc'] = []
@@ -163,10 +159,10 @@ while total_step < max_step:
         cur_batch_size = val_batch_data[0].size(0)
 
         exe_input = val_batch_data[0].cuda() if use_gpu else val_batch_data[0]
-        exe_input = Variable(exe_input.long(), requires_grad=False)
+        exe_input = autograd.Variable(exe_input.long(), requires_grad=False)
 
         label = val_batch_data[1].cuda() if use_gpu else val_batch_data[1]
-        label = Variable(label.float(), requires_grad=False)
+        label = autograd.Variable(label.float(), requires_grad=False)
 
         pred = malconv(exe_input)
         loss = bce_loss(pred, label)

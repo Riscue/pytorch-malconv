@@ -4,8 +4,8 @@ import hashlib
 import shutil
 import random
 
-malware_path =  './data/malware'
-benign_path =   './data/benign'
+malware_path =  './raw-data/malware'
+benign_path =   './raw-data/benign'
 train_path =    './data/train'
 valid_path =    './data/valid'
 train_csv =    './data/train.csv'
@@ -41,26 +41,20 @@ train_csv = open(train_csv, "w")
 for malware in malwares_train:
     malware_hash = md5('%s/%s' % (malware_path, malware))
     train_csv.write('%s,1\n' % malware_hash)
-    shutil.move('%s/%s' % (malware_path, malware), '%s/%s' % (train_path, malware_hash))
+    shutil.copy('%s/%s' % (malware_path, malware), '%s/%s' % (train_path, malware_hash))
 for benign in benigns_train:
     benign_hash = md5('%s/%s' % (benign_path, benign))
     train_csv.write('%s,0\n' % benign_hash)
-    shutil.move('%s/%s' % (benign_path, benign), '%s/%s' % (train_path, benign_hash))
+    shutil.copy('%s/%s' % (benign_path, benign), '%s/%s' % (train_path, benign_hash))
 train_csv.close()
 
 valid_csv = open(valid_csv, "w")
 for malware in malwares_valid:
     malware_hash = md5('%s/%s' % (malware_path, malware))
     valid_csv.write('%s,1\n' % malware_hash)
-    shutil.move('%s/%s' % (malware_path, malware), '%s/%s' % (valid_path, malware_hash))
+    shutil.copy('%s/%s' % (malware_path, malware), '%s/%s' % (valid_path, malware_hash))
 for benign in benigns_valid:
     benign_hash = md5('%s/%s' % (benign_path, benign))
     valid_csv.write('%s,0\n' % benign_hash)
-    shutil.move('%s/%s' % (benign_path, benign), '%s/%s' % (valid_path, benign_hash))
+    shutil.copy('%s/%s' % (benign_path, benign), '%s/%s' % (valid_path, benign_hash))
 valid_csv.close()
-
-if isdir(malware_path) and not listdir(malware_path) :
-    rmdir(malware_path)
-
-if isdir(benign_path) and not listdir(benign_path) :
-    rmdir(benign_path)
