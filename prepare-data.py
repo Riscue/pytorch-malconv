@@ -1,6 +1,5 @@
 import hashlib
 import os
-import os.path as path
 import random
 import zipfile
 
@@ -32,7 +31,7 @@ def extract_dex(source, target):
 
 
 def method_name(csv_file_name, path, malwares, benigns):
-    if not path.isdir(path):
+    if not os.path.isdir(path):
         os.makedirs(path)
 
     csv_file = open(csv_file_name, "w")
@@ -47,13 +46,13 @@ def method_name(csv_file_name, path, malwares, benigns):
     csv_file.close()
 
 
-if not path.isdir(train_path):
-    os.makedirs(train_path);
-if not path.isdir(valid_path):
-    os.makedirs(valid_path);
+if not os.path.isdir(train_path):
+    os.makedirs(train_path)
+if not os.path.isdir(valid_path):
+    os.makedirs(valid_path)
 
-malware_files = [f for f in os.listdir(malware_path) if path.isfile(path.join(malware_path, f))]
-benign_files = [f for f in os.listdir(benign_path) if path.isfile(path.join(benign_path, f))]
+malware_files = [f for f in os.listdir(malware_path) if os.path.isfile(os.path.join(malware_path, f))]
+benign_files = [f for f in os.listdir(benign_path) if os.path.isfile(os.path.join(benign_path, f))]
 
 random.shuffle(malware_files)
 random.shuffle(benign_files)
@@ -68,3 +67,4 @@ benigns_valid = benign_files[benigns_split_index:]
 
 method_name(train_csv, train_path, malwares_train, benigns_train)
 method_name(valid_csv, valid_path, malwares_valid, benigns_valid)
+
