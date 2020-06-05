@@ -26,7 +26,16 @@ class AutoEncoder(nn.Module):
         return x
 
 
-def main():
+def min_max_normalization(tensor, min_value, max_value):
+    min_tensor = tensor.min()
+    tensor = (tensor - min_tensor)
+    max_tensor = tensor.max()
+    tensor = tensor / max_tensor
+    tensor = tensor * (max_value - min_value) + min_value
+    return tensor
+
+
+if __name__ == '__main__':
     num_epochs = 200
     batch_size = 128
     learning_rate = 1e-3
@@ -63,15 +72,3 @@ def main():
         print(f'epoch [{epoch + 1}/{num_epochs}], loss:{loss.data:.4f}, MSE_loss:{mse_loss.data:.4f}')
 
     torch.save(model.state_dict(), './sim_autoencoder.pth')
-
-
-def min_max_normalization(tensor, min_value, max_value):
-    min_tensor = tensor.min()
-    tensor = (tensor - min_tensor)
-    max_tensor = tensor.max()
-    tensor = tensor / max_tensor
-    tensor = tensor * (max_value - min_value) + min_value
-    return tensor
-
-
-main()

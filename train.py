@@ -10,8 +10,8 @@ import torch.optim as optim
 import torch.utils.data as data
 import yaml
 
+from src.exe_dataset import ExeDataset
 from src.model import MalConv
-from src.util import ExeDataset, write_pred
 
 # Load config file for experiment
 try:

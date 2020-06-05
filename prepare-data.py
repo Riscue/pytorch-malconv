@@ -3,6 +3,8 @@ import os
 import random
 import zipfile
 
+from utils import ProgressBar, Chrono
+
 malware_path = './raw-data/malware'
 benign_path = './raw-data/benign'
 train_path = './data/train'
@@ -35,36 +37,57 @@ def method_name(csv_file_name, path, malwares, benigns):
         os.makedirs(path)
 
     csv_file = open(csv_file_name, "w")
-    for malware in malwares:
-        malware_hash = md5('%s/%s' % (malware_path, malware))
-        csv_file.write('%s,1\n' % malware_hash)
-        extract_dex('%s/%s' % (malware_path, malware), '%s/%s' % (path, malware_hash))
-    for benign in benigns:
-        benign_hash = md5('%s/%s' % (benign_path, benign))
-        csv_file.write('%s,0\n' % benign_hash)
-        extract_dex('%s/%s' % (benign_path, benign), '%s/%s' % (path, benign_hash))
+
+    total_malwares = len(malwares)
+    progress_bar.newbar(total_malwares, 'Malware')
+    for i in range(total_malwares):
+        with chrono.measure('step'):
+            malware_hash = md5('%s/%s' % (malware_path, malwares[i]))
+            csv_file.write('%s,1\n' % malware_hash)
+            extract_dex('%s/%s' % (malware_path, malwares[i]), '%s/%s' % (path, malware_hash))
+        progress_bar.update(i, total_malwares, 'Malware | Time: %s' % chrono.last('step'))
+
+    total_benigns = len(benigns)
+    progress_bar.newbar(total_benigns, 'Benign')
+    for i in range(total_benigns):
+        with chrono.measure('step'):
+            benign_hash = md5('%s/%s' % (benign_path, benigns[i]))
+            csv_file.write('%s,0\n' % benign_hash)
+            extract_dex('%s/%s' % (benign_path, benigns[i]), '%s/%s' % (path, benign_hash))
+        progress_bar.update(i, total_benigns, 'Benign | Time: %s' % chrono.last('step'))
     csv_file.close()
 
 
-if not os.path.isdir(train_path):
-    os.makedirs(train_path)
-if not os.path.isdir(valid_path):
-    os.makedirs(valid_path)
+if __name__ == '__main__':
+    progress_bar = ProgressBar()
+    chrono = Chrono()
 
-malware_files = [f for f in os.listdir(malware_path) if os.path.isfile(os.path.join(malware_path, f))]
-benign_files = [f for f in os.listdir(benign_path) if os.path.isfile(os.path.join(benign_path, f))]
+    if not os.path.isdir(train_path):
+        os.makedirs(train_path)
+    if not os.path.isdir(valid_path):
+        os.makedirs(valid_path)
 
-random.shuffle(malware_files)
-random.shuffle(benign_files)
+    malware_files = [f for f in os.listdir(malware_path) if os.path.isfile(os.path.join(malware_path, f))]
+    benign_files = [f for f in os.listdir(benign_path) if os.path.isfile(os.path.join(benign_path, f))]
 
-malwares_split_index = int(0.8 * len(malware_files))
-malwares_train = malware_files[:malwares_split_index]
-malwares_valid = malware_files[malwares_split_index:]
+    random.shuffle(malware_files)
+    random.shuffle(benign_files)
 
-benigns_split_index = int(0.8 * len(benign_files))
-benigns_train = benign_files[:benigns_split_index]
-benigns_valid = benign_files[benigns_split_index:]
+    malwares_split_index = int(0.8 * len(malware_files))
+    malwares_train = malware_files[:malwares_split_index]
+    malwares_valid = malware_files[malwares_split_index:]
 
-method_name(train_csv, train_path, malwares_train, benigns_train)
-method_name(valid_csv, valid_path, malwares_valid, benigns_valid)
+    benigns_split_index = int(0.8 * len(benign_files))
+    benigns_train = benign_files[:benigns_split_index]
+    benigns_valid = benign_files[benigns_split_index:]
 
+    print('Processing training dataset')
+    with chrono.measure('process'):
+        method_name(train_csv, train_path, malwares_train, benigns_train)
+    print('Completed in: %.5f' % chrono.last('process'))
+
+    print('Processing validation dataset')
+    with chrono.measure('process'):
+        method_name(valid_csv, valid_path, malwares_valid, benigns_valid)
+    print('Completed in: %.5f' % chrono.last('process'))
+    print('Total time: %.5f' % chrono.total('process'))
