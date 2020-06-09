@@ -1,14 +1,22 @@
 import collections
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 import os.path as path
 import sys
 import time
-
-import matplotlib.pyplot as plt
-import numpy as np
 import torch
 import torch.autograd as autograd
-import torchvision
+import torch.utils.data as data
+
+from src.exe_dataset import ExeDataset
+
+malware_path = './raw-data/malware'
+benign_path = './raw-data/benign'
+train_path = './data/train'
+valid_path = './data/valid'
+train_csv = './data/train.csv'
+valid_csv = './data/valid.csv'
 
 
 class Utils:
@@ -146,28 +154,35 @@ class Logger:
         self.file.flush()
 
 
-def dataloader():
-    temp_transform = torchvision.transforms.Compose([torchvision.transforms.ToTensor()])
+def dataloader(first_n_byte):
+    tr_label_table = pandas.read_csv(train_csv, header=None, index_col=0)
+    tr_label_table.index = tr_label_table.index.str.upper()
+    tr_label_table = tr_label_table.rename(columns={1: 'ground_truth'})
+    tr_table = tr_label_table.groupby(level=0).last()
 
-    temp_set = torchvision.datasets.CIFAR10(root='./data/', train=True, transform=temp_transform)
-    mean = temp_set.data.mean(axis=(0, 1, 2)) / 255
-    std = temp_set.data.std(axis=(0, 1, 2)) / 255
+    val_label_table = pandas.read_csv(valid_csv, header=None, index_col=0)
+    val_label_table.index = val_label_table.index.str.upper()
+    val_label_table = val_label_table.rename(columns={1: 'ground_truth'})
+    val_table = val_label_table.groupby(level=0).last()
 
-    transform_train = torchvision.transforms.Compose([
-        torchvision.transforms.RandomHorizontalFlip(),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean, std),
-    ])
-    transform_test = torchvision.transforms.Compose([
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean, std),
-    ])
+    train_dataset = ExeDataset(list(tr_table.index), train_path + '/', list(tr_table.ground_truth), first_n_byte)
+    test_dataset = ExeDataset(list(val_table.index), valid_path + '/', list(val_table.ground_truth), first_n_byte)
 
-    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, transform=transform_train)
-    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, transform=transform_test)
+    train_dataloader = data.DataLoader(train_dataset, batch_size=5, shuffle=True, num_workers=12)
+    test_dataloader = data.DataLoader(test_dataset, batch_size=5, shuffle=False, num_workers=12)
 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=128, num_workers=4, shuffle=False)
-    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=100, num_workers=4, shuffle=False)
+    print('Training Set: %d files' % len(tr_table))
+    print('\tMalware\t: %d' % tr_table['ground_truth'].value_counts()[1])
+    print('\tBenign\t: %d' % tr_table['ground_truth'].value_counts()[0])
+
+    print('Validation Set: %d files' % len(val_table))
+    print('\tMalware\t: %d' % val_table['ground_truth'].value_counts()[1])
+    print('\tBenign\t: %d' % val_table['ground_truth'].value_counts()[0])
+
+    del tr_label_table
+    del val_label_table
+    del tr_table
+    del val_table
 
     return train_dataset, test_dataset, train_dataloader, test_dataloader
 

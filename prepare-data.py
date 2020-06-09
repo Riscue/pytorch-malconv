@@ -3,14 +3,7 @@ import os
 import random
 import zipfile
 
-from utils import ProgressBar, Chrono
-
-malware_path = './raw-data/malware'
-benign_path = './raw-data/benign'
-train_path = './data/train'
-valid_path = './data/valid'
-train_csv = './data/train.csv'
-valid_csv = './data/valid.csv'
+from utils import ProgressBar, Chrono, malware_path, benign_path, train_path, valid_path, train_csv, valid_csv
 
 
 def md5(fname):
@@ -45,7 +38,7 @@ def method_name(csv_file_name, path, malwares, benigns):
             malware_hash = md5('%s/%s' % (malware_path, malwares[i]))
             csv_file.write('%s,1\n' % malware_hash)
             extract_dex('%s/%s' % (malware_path, malwares[i]), '%s/%s' % (path, malware_hash))
-        progress_bar.update(i, total_malwares, 'Malware | Time: %s' % chrono.last('step'))
+        progress_bar.update(i, 'Malware | Time: %s' % chrono.last('step'))
 
     total_benigns = len(benigns)
     progress_bar.newbar(total_benigns, 'Benign')
@@ -54,7 +47,7 @@ def method_name(csv_file_name, path, malwares, benigns):
             benign_hash = md5('%s/%s' % (benign_path, benigns[i]))
             csv_file.write('%s,0\n' % benign_hash)
             extract_dex('%s/%s' % (benign_path, benigns[i]), '%s/%s' % (path, benign_hash))
-        progress_bar.update(i, total_benigns, 'Benign | Time: %s' % chrono.last('step'))
+        progress_bar.update(i, 'Benign | Time: %s' % chrono.last('step'))
     csv_file.close()
 
 

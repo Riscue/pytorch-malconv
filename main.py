@@ -1,4 +1,8 @@
+import argparse
 import torch as torch
+
+from src.model import MalConv
+from utils import Logger, ProgressBar, Chrono, dataloader, get_torch_vars, Utils
 
 
 class AndroConv:
@@ -30,10 +34,10 @@ class AndroConv:
         self.progress_bar = ProgressBar()
         self.chrono = Chrono()
 
-        self.trainset, self.testset, self.trainloader, self.testloader = dataloader()
+        self.trainset, self.testset, self.trainloader, self.testloader = dataloader(args.first_n_byte)
 
         print('==> Building model..')
-        self.model = MalConv(input_length=first_n_byte)
+        self.model = MalConv(input_length=args.first_n_byte)
 
         if torch.cuda.is_available():
             self.model = torch.nn.DataParallel(self.model)
@@ -172,4 +176,6 @@ if __name__ == '__main__':
     parser.add_argument('-x', '--experiment', default=1, help='Experiment number')
     parser.add_argument('-lp', '--log_path', default='logs', help='Path that log files stored')
     parser.add_argument('-sp', '--save_path', default='state_dicts', help='Path that pytorch save files stored')
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
     AndroConv(parser.parse_args()).run()
