@@ -105,7 +105,7 @@ class AndroConv:
                 self.train_loss += loss.item()
                 total += targets.size(0)
                 correct += ((outputs + 0.5).int() == targets).sum().item()
-                self.pred.append(outputs)
+                self.pred.append(outputs.cpu().data.numpy())
 
             msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
                                    Utils.format_time(self.chrono.total('step_time')),
@@ -138,7 +138,7 @@ class AndroConv:
                     self.test_loss += loss.item()
                     total += targets.size(0)
                     correct += ((outputs + 0.5).int() == targets).sum().item()
-                    self.pred.append(outputs)
+                    self.pred.append(outputs.cpu().data.numpy())
 
                 msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
                                        Utils.format_time(self.chrono.total('step_time')),
@@ -176,7 +176,7 @@ class AndroConv:
             os.mkdir('./%s' % self.save_path)
         torch.save(state, './%s/%s_%s.pth' % (self.save_path, self.modelName, self.experiment))
 
-        test_pred = [item for sublist in list(self.pred.cpu().data.numpy()) for item in sublist]
+        test_pred = [item for sublist in list(self.pred) for item in sublist]
         with open('./%s/%s_%s.pred' % (self.log_path, self.modelName, self.experiment), 'w') as f:
             for pred in test_pred:
                 print(str(pred), file=f)
