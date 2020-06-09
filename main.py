@@ -82,6 +82,7 @@ class AndroConv:
         self.train_loss = 0
         correct = 0
         total = 0
+        self.pred = []
         self.progress_bar.newbar(len(self.trainloader))
         for batch_idx, (inputs, targets) in enumerate(self.trainloader):
             with self.chrono.measure("step_time"):
@@ -104,7 +105,7 @@ class AndroConv:
                 self.train_loss += loss.item()
                 total += targets.size(0)
                 correct += ((outputs + 0.5).int() == targets).sum().item()
-                self.pred = outputs
+                self.pred.append(outputs)
 
             msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
                                    Utils.format_time(self.chrono.total('step_time')),
@@ -123,6 +124,7 @@ class AndroConv:
         self.test_loss = 0
         correct = 0
         total = 0
+        self.pred = []
         with torch.no_grad():
             self.progress_bar.newbar(len(self.testloader))
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
@@ -136,7 +138,7 @@ class AndroConv:
                     self.test_loss += loss.item()
                     total += targets.size(0)
                     correct += ((outputs + 0.5).int() == targets).sum().item()
-                    self.pred = outputs
+                    self.pred.append(outputs)
 
                 msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
                                        Utils.format_time(self.chrono.total('step_time')),
