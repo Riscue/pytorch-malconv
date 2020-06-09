@@ -80,7 +80,7 @@ class ProgressBar:
 
         sys.stdout.write(msg)
 
-        for i in range(self.term_width - int(self.TOTAL_BAR_LENGTH) - len(msg) - 3):
+        for i in range(self.term_width - int(self.TOTAL_BAR_LENGTH) - len(msg) - 4):
             sys.stdout.write(' ')
 
         for i in range(self.term_width - int(self.TOTAL_BAR_LENGTH / 2) + len(str(self.total))):
@@ -170,8 +170,8 @@ def dataloader(first_n_byte):
     train_dataset = ExeDataset(list(tr_table.index), train_path + '/', list(tr_table.ground_truth), first_n_byte)
     test_dataset = ExeDataset(list(val_table.index), valid_path + '/', list(val_table.ground_truth), first_n_byte)
 
-    train_dataloader = data.DataLoader(train_dataset, batch_size=5, shuffle=True, num_workers=12)
-    test_dataloader = data.DataLoader(test_dataset, batch_size=5, shuffle=False, num_workers=12)
+    train_dataloader = data.DataLoader(train_dataset, batch_size=10, shuffle=True, num_workers=16)
+    test_dataloader = data.DataLoader(test_dataset, batch_size=5, shuffle=False, num_workers=16)
 
     print('Training Set: %d files' % len(tr_table))
     print('\tMalware\t: %d' % tr_table['ground_truth'].value_counts()[1])
