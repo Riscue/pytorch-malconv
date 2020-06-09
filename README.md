@@ -1,41 +1,35 @@
 # MalConv-Pytorch
-A Pytorch implementation of MalConv
+A Pytorch adaptation of MalConv for Android apks
 
 ---
 ## Desciprtion
 
-This is the implementation of MalConv proposed in [Malware Detection by Eating a Whole EXE](https://arxiv.org/abs/1710.09435).
+This is the adaptation of MalConv proposed in [Malware Detection by Eating a Whole EXE](https://arxiv.org/abs/1710.09435) for Android apks 
 
 ## Dependency
 
-Please make sure each of them is installed with the correct version
-
 - numpy
-- pytorch (0.3.0.post4)
-- pandas (0.20.3)
+- pytorch
+- pandas
 
 
 ## Setup
 
 #### Preparing data
 
-For the training data, please place PE files under [`data/train/`](`data/train`) and build [the label table](data/example-train-label.csv) for training set with each row being
+- Place all malware and benign apks under `raw-data` folder.
+- Run `python3 prepare-data.py`
 
-        <File Name>, <Label>
+All files will be placed under data folder
 
-where label = 1 refers to malware. Validation set should be handled in the same way.
+Labels will be stored in `train.csv` and `valid.csv`
 
 #### Training
-
-Run the following command for training progress
-
-        python3 train.py <config_file_path> <random_seed>
-        Example : python3 train.py config/example.yaml 123
-
-#### Training Log & Checkpoint
-
-Log file, prediction on validation set & Model checkpoint will be stored at the path specified in config file.
+```
+python3 train.py -x <experiment number>
+Example : python3 train.py -x 0
+```
 
 ## Parameters & Model Options
 
-For parameters and options availible, please refer to [`config/example.yaml`](config/example.yaml).
+For parameters and options available: `python3 main.py -h`

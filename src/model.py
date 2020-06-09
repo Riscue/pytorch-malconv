@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
 
 class MalConv(nn.Module):
-    def __init__(self,input_length=2000000,window_size=500):
+    def __init__(self, input_length=2000000, window_size=500, classifier='sigmoid'):
         super(MalConv, self).__init__()
 
         self.embed = nn.Embedding(257, 8, padding_idx=0)
@@ -11,20 +11,16 @@ class MalConv(nn.Module):
         self.conv_1 = nn.Conv1d(4, 128, window_size, stride=window_size, bias=True)
         self.conv_2 = nn.Conv1d(4, 128, window_size, stride=window_size, bias=True)
 
-        self.pooling = nn.MaxPool1d(int(input_length/window_size))
-        
+        self.pooling = nn.MaxPool1d(int(input_length / window_size))
 
-        self.fc_1 = nn.Linear(128,128)
-        self.fc_2 = nn.Linear(128,1)
+        self.fc_1 = nn.Linear(128, 128)
+        self.fc_2 = nn.Linear(128, 1)
 
-        self.sigmoid = nn.Sigmoid()
-        #self.softmax = nn.Softmax()
-        
+        self.classifier = nn.Sigmoid() if classifier == 'sigmoid' else nn.Softmax() if classifier == 'softmax' else None
 
-    def forward(self,x):
+    def forward(self, x):
         x = self.embed(x)
-        # Channel first
-        x = torch.transpose(x,-1,-2)
+        x = torch.transpose(x, -1, -2)
 
         cnn_value = self.conv_1(x.narrow(-2, 0, 4))
         gating_weight = self.sigmoid(self.conv_2(x.narrow(-2, 4, 4)))
@@ -32,9 +28,9 @@ class MalConv(nn.Module):
         x = cnn_value * gating_weight
         x = self.pooling(x)
 
-        x = x.view(-1,128)
+        x = x.view(-1, 128)
         x = self.fc_1(x)
         x = self.fc_2(x)
-        #x = self.sigmoid(x)
+        x = self.classifier(x)
 
         return x
