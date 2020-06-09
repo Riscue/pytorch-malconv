@@ -127,7 +127,7 @@ class AndroConv:
         correct = 0
         total = 0
         self.pred = []
-        self.confusion_matrix = torch.zeros(2, 2)
+        self.confusion_matrix = torch.zeros([2, 2], dtype=torch.int)
         with torch.no_grad():
             self.progress_bar.newbar(len(self.testloader))
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
@@ -184,10 +184,11 @@ class AndroConv:
         torch.save(state, './%s/%s_%s.pth' % (self.save_path, self.modelName, self.experiment))
 
         test_pred = [item for sublist in list(self.pred) for item in sublist]
-        with open('./%s/%s_%s.pred' % (self.log_path, self.modelName, self.experiment), 'w') as f:
+        with open('./%s/%s_%s.pred' % (self.save_path, self.modelName, self.experiment), 'w') as f:
             for pred in test_pred:
                 print('%.5f' % pred[0], file=f)
-        print(self.confusion_matrix)
+        with open('./%s/%s_%s.cmx' % (self.save_path, self.modelName, self.experiment), 'w') as f:
+            print(self.confusion_matrix.cpu().data.numpy(), file=f)
 
     def log(self):
         self.logger.write(self.log_msg.format(self.epoch + 1,
