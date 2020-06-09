@@ -71,8 +71,8 @@ class AndroConv:
 
                 self.log()
 
-        if self.test_acc > self.best_acc:
-            self.save()
+                if self.test_acc > self.best_acc:
+                    self.save()
 
     def train(self):
         self.model.train()
