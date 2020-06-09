@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class MalConv(nn.Module):
-    def __init__(self, input_length=2000000, window_size=500, classifier='sigmoid'):
+    def __init__(self, input_length=2000000, window_size=500):
         super(MalConv, self).__init__()
 
         self.embed = nn.Embedding(257, 8, padding_idx=0)
@@ -17,7 +17,7 @@ class MalConv(nn.Module):
         self.fc_1 = nn.Linear(128, 128)
         self.fc_2 = nn.Linear(128, 1)
 
-        self.classifier = nn.Sigmoid() if classifier == 'sigmoid' else nn.Softmax() if classifier == 'softmax' else None
+        self.softmax = nn.Softmax(dim=0)
 
     def forward(self, x):
         x = self.embed(x)
@@ -32,6 +32,6 @@ class MalConv(nn.Module):
         x = x.view(-1, 128)
         x = self.fc_1(x)
         x = self.fc_2(x)
-        x = self.classifier(x)
+        x = self.softmax(x)
 
         return x

@@ -1,7 +1,8 @@
 import argparse
 import os
 import sys
-import torch as torch
+
+import torch
 
 from src.model import MalConv
 from utils import Logger, ProgressBar, Chrono, dataloader, get_torch_vars, Utils
@@ -25,13 +26,14 @@ class AndroConv:
         self.initial_lr = args.learning_rate
         self.lr = args.learning_rate
         self.test_only = args.test_only
+        self.modelName = "malconv"
         self.experiment = args.experiment
         self.save_path = args.save_path
 
         if not os.path.isdir(args.log_path):
             os.makedirs(args.log_path)
 
-        self.logger = Logger('%s/malconv_%s.csv' % (args.log_path, args.experiment),
+        self.logger = Logger('%s/%s-%s.csv' % (args.log_path, self.modelName, args.experiment),
                              'epoch, time, learning_rate, tr_loss, tr_acc, val_loss, val_acc')
         self.progress_bar = ProgressBar()
         self.chrono = Chrono()
@@ -81,7 +83,7 @@ class AndroConv:
         for batch_idx, (inputs, targets) in enumerate(self.trainloader):
             with self.chrono.measure("step_time"):
                 inputs = get_torch_vars(inputs)
-                targets = get_torch_vars(targets.float())
+                targets = get_torch_vars(targets)
 
                 self.optimizer.zero_grad()
                 outputs = self.model(inputs)
@@ -90,9 +92,8 @@ class AndroConv:
                 self.optimizer.step()
 
                 self.train_loss += loss.item()
-                _, predicted = outputs.max(1)
                 total += targets.size(0)
-                correct += predicted.eq(targets).sum().item()
+                correct += outputs.eq(targets).sum().item()
 
             msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
                                    Utils.format_time(self.chrono.total('step_time')),
@@ -116,15 +117,14 @@ class AndroConv:
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
                 with self.chrono.measure("step_time"):
                     inputs = get_torch_vars(inputs)
-                    targets = get_torch_vars(targets.float())
+                    targets = get_torch_vars(targets)
 
                     outputs = self.model(inputs)
                     loss = self.criterion(outputs, targets)
 
                     self.test_loss += loss.item()
-                    _, predicted = outputs.max(1)
                     total += targets.size(0)
-                    correct += predicted.eq(targets).sum().item()
+                    correct += outputs.eq(targets).sum().item()
 
                 msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
                                        Utils.format_time(self.chrono.total('step_time')),
@@ -141,7 +141,7 @@ class AndroConv:
     def load(self):
         print('==> Loading from save...')
         assert os.path.isdir('./%s' % self.save_path), 'Error: save directory not found!'
-        state_dict = torch.load('./%s/malconv_%s.pth' % (self.save_path, self.experiment), map_location='cpu')
+        state_dict = torch.load('./%s/%s_%s.pth' % (self.save_path, self.modelName, self.experiment))
         self.model.load_state_dict(state_dict['model'])
         self.optimizer.load_state_dict(state_dict['optimizer'])
         self.epoch = state_dict['epoch'] + 1
@@ -160,7 +160,7 @@ class AndroConv:
         }
         if not os.path.isdir('./%s' % self.save_path):
             os.mkdir('./%s' % self.save_path)
-        torch.save(state, './%s/malconv_%s.pth' % (self.save_path, self.experiment))
+        torch.save(state, './%s/%s_%s.pth' % (self.save_path, self.modelName, self.experiment))
 
     def log(self):
         self.logger.write(self.log_msg.format(self.epoch + 1,
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch MalConv Training')
     parser.add_argument('-r', '--resume', action='store_true', help='resume from save')
     parser.add_argument('-t', '--test_only', action='store_true', help='Test only')
-    parser.add_argument('-l', '--learning_rate', default=1e-3, type=float, help='learning rate')
+    parser.add_argument('-l', '--learning_rate', default=1e-2, type=float, help='learning rate')
     parser.add_argument('-b', '--first_n_byte', default=5000000, type=int, help='First n bytes to read from binary')
     parser.add_argument('-x', '--experiment', default=1, help='Experiment number')
     parser.add_argument('-lp', '--log_path', default='logs', help='Path that log files stored')

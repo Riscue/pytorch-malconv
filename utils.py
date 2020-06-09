@@ -1,11 +1,12 @@
 import collections
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import os.path as path
-import pandas
 import sys
 import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas
 import torch
 import torch.autograd as autograd
 import torch.utils.data as data

@@ -1,9 +1,10 @@
 import argparse
 import os
-import requests
 import sys
 import tarfile
-from tqdm import tqdm
+
+import requests
+import tqdm
 
 
 class StateDicts:

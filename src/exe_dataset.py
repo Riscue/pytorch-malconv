@@ -17,4 +17,4 @@ class ExeDataset(Dataset):
             tmp = [i + 1 for i in f.read()[:self.first_n_byte]]
             tmp = tmp + [0] * (self.first_n_byte - len(tmp))
 
-        return np.array(tmp), np.array([self.label_list[idx]])
+        return np.array(tmp), np.array([self.label_list[idx]]).astype(float)
