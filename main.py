@@ -179,7 +179,7 @@ class AndroConv:
         test_pred = [item for sublist in list(self.pred) for item in sublist]
         with open('./%s/%s_%s.pred' % (self.log_path, self.modelName, self.experiment), 'w') as f:
             for pred in test_pred:
-                print(str(pred), file=f)
+                print(str(pred[0]), file=f)
 
     def log(self):
         self.logger.write(self.log_msg.format(self.epoch + 1,
