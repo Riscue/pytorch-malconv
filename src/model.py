@@ -17,8 +17,6 @@ class MalConv(nn.Module):
         self.fc_1 = nn.Linear(128, 128)
         self.fc_2 = nn.Linear(128, 1)
 
-        self.softmax = nn.Softmax(dim=0)
-
     def forward(self, x):
         x = self.embed(x)
         x = torch.transpose(x, -1, -2)
@@ -32,6 +30,6 @@ class MalConv(nn.Module):
         x = x.view(-1, 128)
         x = self.fc_1(x)
         x = self.fc_2(x)
-        x = self.softmax(x)
+        x = self.sigmoid(x)
 
         return x

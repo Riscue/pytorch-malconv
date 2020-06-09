@@ -80,7 +80,7 @@ class ProgressBar:
 
         sys.stdout.write(msg)
 
-        for i in range(self.term_width - int(self.TOTAL_BAR_LENGTH) - len(msg) - len(str(self.total)) - 1):
+        for i in range(self.term_width - int(self.TOTAL_BAR_LENGTH) - len(msg) - 4):
             sys.stdout.write(' ')
 
         for i in range(self.term_width - int(self.TOTAL_BAR_LENGTH / 2) + len(str(self.total))):
@@ -189,10 +189,10 @@ def dataloader(first_n_byte):
     return train_dataset, test_dataset, train_dataloader, test_dataloader
 
 
-def get_torch_vars(x, var=True):
+def get_torch_vars(x, var=True, requires_grad=True):
     if torch.cuda.is_available():
         x = x.cuda()
-    return autograd.Variable(x) if var else x
+    return autograd.Variable(x, requires_grad) if var else x
 
 
 def imshow(img):

@@ -52,7 +52,7 @@ class AndroConv:
         if args.resume:
             self.load()
 
-        self.criterion = torch.nn.BCEWithLogitsLoss()
+        self.criterion = torch.nn.BCELoss()
         self.criterion = get_torch_vars(self.criterion, False)
 
         self.model = get_torch_vars(self.model, False)
@@ -82,12 +82,12 @@ class AndroConv:
         self.progress_bar.newbar(len(self.trainloader))
         for batch_idx, (inputs, targets) in enumerate(self.trainloader):
             with self.chrono.measure("step_time"):
-                inputs = get_torch_vars(inputs)
-                targets = get_torch_vars(targets)
+                inputs = get_torch_vars(inputs, requires_grad=False)
+                targets = get_torch_vars(targets, requires_grad=False)
 
                 self.optimizer.zero_grad()
                 outputs = self.model(inputs)
-                loss = self.criterion(outputs, targets)
+                loss = self.criterion(outputs.double(), targets.double())
                 loss.backward()
                 self.optimizer.step()
 
@@ -116,11 +116,11 @@ class AndroConv:
             self.progress_bar.newbar(len(self.testloader))
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
                 with self.chrono.measure("step_time"):
-                    inputs = get_torch_vars(inputs)
-                    targets = get_torch_vars(targets)
+                    inputs = get_torch_vars(inputs, requires_grad=False)
+                    targets = get_torch_vars(targets, requires_grad=False)
 
                     outputs = self.model(inputs)
-                    loss = self.criterion(outputs, targets)
+                    loss = self.criterion(outputs.double(), targets.double())
 
                     self.test_loss += loss.item()
                     total += targets.size(0)
