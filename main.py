@@ -1,4 +1,6 @@
 import argparse
+import os
+import sys
 import torch as torch
 
 from src.model import MalConv
@@ -23,7 +25,6 @@ class AndroConv:
         self.initial_lr = args.learning_rate
         self.lr = args.learning_rate
         self.test_only = args.test_only
-        self.saveFile = args.model
         self.experiment = args.experiment
 
         if not os.path.isdir(args.log_path):
@@ -43,7 +44,7 @@ class AndroConv:
             self.model = torch.nn.DataParallel(self.model)
             torch.backends.cudnn.benchmark = True
 
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, momentum=0.9)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr,)
 
         if args.resume:
             self.load()
@@ -138,7 +139,7 @@ class AndroConv:
     def load(self):
         print('==> Loading from save...')
         assert os.path.isdir('./state_dicts'), 'Error: no state_dicts directory found!'
-        state_dict = torch.load('./state_dicts/%s_%s.pth' % (self.saveFile, self.experiment), map_location='cpu')
+        state_dict = torch.load('./state_dicts/malconv_%s.pth' % self.experiment, map_location='cpu')
         self.model.load_state_dict(state_dict['model'])
         self.optimizer.load_state_dict(state_dict['optimizer'])
         self.epoch = state_dict['epoch'] + 1
@@ -157,7 +158,7 @@ class AndroConv:
         }
         if not os.path.isdir('state_dicts'):
             os.mkdir('state_dicts')
-        torch.save(state, './state_dicts/%s_%s.pth' % (self.saveFile, self.experiment))
+        torch.save(state, './state_dicts/malconv_%s.pth' % self.experiment)
 
     def log(self):
         self.logger.write(self.log_msg.format(self.epoch + 1,

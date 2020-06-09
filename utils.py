@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import os.path as path
+import pandas
 import sys
 import time
 import torch
@@ -156,12 +157,12 @@ class Logger:
 
 def dataloader(first_n_byte):
     tr_label_table = pandas.read_csv(train_csv, header=None, index_col=0)
-    tr_label_table.index = tr_label_table.index.str.upper()
+    tr_label_table.index = tr_label_table.index.str.lower()
     tr_label_table = tr_label_table.rename(columns={1: 'ground_truth'})
     tr_table = tr_label_table.groupby(level=0).last()
 
     val_label_table = pandas.read_csv(valid_csv, header=None, index_col=0)
-    val_label_table.index = val_label_table.index.str.upper()
+    val_label_table.index = val_label_table.index.str.lower()
     val_label_table = val_label_table.rename(columns={1: 'ground_truth'})
     val_table = val_label_table.groupby(level=0).last()
 

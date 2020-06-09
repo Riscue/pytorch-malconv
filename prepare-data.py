@@ -3,7 +3,7 @@ import os
 import random
 import zipfile
 
-from utils import ProgressBar, Chrono, malware_path, benign_path, train_path, valid_path, train_csv, valid_csv
+from utils import ProgressBar, Chrono, malware_path, benign_path, train_path, valid_path, train_csv, valid_csv, Utils
 
 
 def md5(fname):
@@ -38,7 +38,7 @@ def method_name(csv_file_name, path, malwares, benigns):
             malware_hash = md5('%s/%s' % (malware_path, malwares[i]))
             csv_file.write('%s,1\n' % malware_hash)
             extract_dex('%s/%s' % (malware_path, malwares[i]), '%s/%s' % (path, malware_hash))
-        progress_bar.update(i, 'Malware | Time: %s' % chrono.last('step'))
+        progress_bar.update(i, 'Malware | Time: %s' % Utils.format_time(chrono.last('step')))
 
     total_benigns = len(benigns)
     progress_bar.newbar(total_benigns, 'Benign')
@@ -47,7 +47,7 @@ def method_name(csv_file_name, path, malwares, benigns):
             benign_hash = md5('%s/%s' % (benign_path, benigns[i]))
             csv_file.write('%s,0\n' % benign_hash)
             extract_dex('%s/%s' % (benign_path, benigns[i]), '%s/%s' % (path, benign_hash))
-        progress_bar.update(i, 'Benign | Time: %s' % chrono.last('step'))
+        progress_bar.update(i, 'Benign | Time: %s' % Utils.format_time(chrono.last('step')))
     csv_file.close()
 
 
@@ -77,10 +77,10 @@ if __name__ == '__main__':
     print('Processing training dataset')
     with chrono.measure('process'):
         method_name(train_csv, train_path, malwares_train, benigns_train)
-    print('Completed in: %.5f' % chrono.last('process'))
+    print('Completed in: %s' % Utils.format_time(chrono.last('process')))
 
     print('Processing validation dataset')
     with chrono.measure('process'):
         method_name(valid_csv, valid_path, malwares_valid, benigns_valid)
-    print('Completed in: %.5f' % chrono.last('process'))
-    print('Total time: %.5f' % chrono.total('process'))
+    print('Completed in: %s' % Utils.format_time(chrono.last('process')))
+    print('Total time: %s' % Utils.format_time(chrono.total('process')))
