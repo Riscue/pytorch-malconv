@@ -45,7 +45,7 @@ class AndroConv:
             self.model = torch.nn.DataParallel(self.model)
             torch.backends.cudnn.benchmark = True
 
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr,)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
         if args.resume:
             self.load()
@@ -81,7 +81,7 @@ class AndroConv:
         for batch_idx, (inputs, targets) in enumerate(self.trainloader):
             with self.chrono.measure("step_time"):
                 inputs = get_torch_vars(inputs)
-                targets = get_torch_vars(targets)
+                targets = get_torch_vars(targets.float())
 
                 self.optimizer.zero_grad()
                 outputs = self.model(inputs)
@@ -116,7 +116,8 @@ class AndroConv:
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
                 with self.chrono.measure("step_time"):
                     inputs = get_torch_vars(inputs)
-                    targets = get_torch_vars(targets)
+                    targets = get_torch_vars(targets.float())
+
                     outputs = self.model(inputs)
                     loss = self.criterion(outputs, targets)
 
@@ -174,7 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--resume', action='store_true', help='resume from save')
     parser.add_argument('-t', '--test_only', action='store_true', help='Test only')
     parser.add_argument('-l', '--learning_rate', default=1e-3, type=float, help='learning rate')
-    parser.add_argument('-b', '--first_n_byte', default=5000000, help='First n bytes to read from binary')
+    parser.add_argument('-b', '--first_n_byte', default=5000000, type=int, help='First n bytes to read from binary')
     parser.add_argument('-x', '--experiment', default=1, help='Experiment number')
     parser.add_argument('-lp', '--log_path', default='logs', help='Path that log files stored')
     parser.add_argument('-sp', '--save_path', default='state_dicts', help='Path that pytorch save files stored')
