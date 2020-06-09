@@ -26,11 +26,12 @@ class AndroConv:
         self.lr = args.learning_rate
         self.test_only = args.test_only
         self.experiment = args.experiment
+        self.save_path = args.save_path
 
         if not os.path.isdir(args.log_path):
             os.makedirs(args.log_path)
 
-        self.logger = Logger('%s/%s-%s.csv' % (args.log_path, args.model, args.experiment),
+        self.logger = Logger('%s/malconv_%s.csv' % (args.log_path, args.experiment),
                              'epoch, time, learning_rate, tr_loss, tr_acc, val_loss, val_acc')
         self.progress_bar = ProgressBar()
         self.chrono = Chrono()
@@ -138,8 +139,8 @@ class AndroConv:
 
     def load(self):
         print('==> Loading from save...')
-        assert os.path.isdir('./state_dicts'), 'Error: no state_dicts directory found!'
-        state_dict = torch.load('./state_dicts/malconv_%s.pth' % self.experiment, map_location='cpu')
+        assert os.path.isdir('./%s' % self.save_path), 'Error: save directory not found!'
+        state_dict = torch.load('./%s/malconv_%s.pth' % (self.save_path, self.experiment), map_location='cpu')
         self.model.load_state_dict(state_dict['model'])
         self.optimizer.load_state_dict(state_dict['optimizer'])
         self.epoch = state_dict['epoch'] + 1
@@ -156,9 +157,9 @@ class AndroConv:
             'acc': self.best_acc,
             'epoch': self.epoch
         }
-        if not os.path.isdir('state_dicts'):
-            os.mkdir('state_dicts')
-        torch.save(state, './state_dicts/malconv_%s.pth' % self.experiment)
+        if not os.path.isdir('./%s' % self.save_path):
+            os.mkdir('./%s' % self.save_path)
+        torch.save(state, './%s/malconv_%s.pth' % (self.save_path, self.experiment))
 
     def log(self):
         self.logger.write(self.log_msg.format(self.epoch + 1,
