@@ -13,6 +13,7 @@ class AndroConv:
     step_msg = 'Step: %s | Tot: %s | Lr: %.5f | Loss: %.3f | Acc: %.3f%% (%d/%d)'
 
     epochs = [1, 5, 10, 15, 20]
+    classes = ('benign', 'malware')
     epoch = 0
 
     train_acc = 0
@@ -127,7 +128,7 @@ class AndroConv:
         correct = 0
         total = 0
         self.pred = []
-        self.confusion_matrix = torch.zeros([2, 2], dtype=torch.int)
+        self.confusion_matrix = torch.zeros([len(self.classes), len(self.classes)], dtype=torch.int)
         with torch.no_grad():
             self.progress_bar.newbar(len(self.testloader))
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
