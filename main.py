@@ -22,18 +22,21 @@ class AndroConv:
     train_loss = 0
     test_loss = 0
 
+    pred = None
+
     def __init__(self, args):
         self.initial_lr = args.learning_rate
         self.lr = args.learning_rate
         self.test_only = args.test_only
         self.modelName = "malconv"
         self.experiment = args.experiment
+        self.log_path = args.log_path
         self.save_path = args.save_path
 
-        if not os.path.isdir(args.log_path):
-            os.makedirs(args.log_path)
+        if not os.path.isdir(self.log_path):
+            os.makedirs(self.log_path)
 
-        self.logger = Logger('%s/%s_%s.csv' % (args.log_path, self.modelName, args.experiment),
+        self.logger = Logger('%s/%s_%s.csv' % (self.log_path, self.modelName, args.experiment),
                              'epoch, time, learning_rate, tr_loss, tr_acc, val_loss, val_acc')
         self.progress_bar = ProgressBar()
         self.chrono = Chrono()
@@ -93,7 +96,8 @@ class AndroConv:
 
                 self.train_loss += loss.item()
                 total += targets.size(0)
-                correct += outputs.eq(targets).sum().item()
+                correct += ((outputs + 0.5).int() == targets).sum().item()
+                self.pred = outputs
 
             msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
                                    Utils.format_time(self.chrono.total('step_time')),
@@ -124,7 +128,8 @@ class AndroConv:
 
                     self.test_loss += loss.item()
                     total += targets.size(0)
-                    correct += outputs.eq(targets).sum().item()
+                    correct += ((outputs + 0.5).int() == targets).sum().item()
+                    self.pred = outputs
 
                 msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
                                        Utils.format_time(self.chrono.total('step_time')),
@@ -161,6 +166,11 @@ class AndroConv:
         if not os.path.isdir('./%s' % self.save_path):
             os.mkdir('./%s' % self.save_path)
         torch.save(state, './%s/%s_%s.pth' % (self.save_path, self.modelName, self.experiment))
+
+        test_pred = [item for sublist in list(self.pred.cpu().data.numpy()) for item in sublist]
+        with open('./%s/%s_%s.pred' % (self.log_path, self.modelName, self.experiment), 'w') as f:
+            for pred in test_pred:
+                print(str(pred), file=f)
 
     def log(self):
         self.logger.write(self.log_msg.format(self.epoch + 1,
