@@ -5,7 +5,7 @@ import sys
 import torch
 
 from src.model import MalConv
-from utils import Logger, ProgressBar, Chrono, dataloader, get_torch_vars, Utils
+from utils import Logger, ProgressBar, Chrono, dataloader, get_torch_vars, Utils, update_lr
 
 
 class AndroConv:
@@ -87,6 +87,13 @@ class AndroConv:
             with self.chrono.measure("step_time"):
                 inputs = get_torch_vars(inputs, requires_grad=False)
                 targets = get_torch_vars(targets, requires_grad=False)
+
+                self.lr = update_lr(self.optimizer,
+                                    self.epoch, self.epochs,
+                                    self.initial_lr,
+                                    batch_idx, len(self.trainloader))
+                if self.lr is None:
+                    break
 
                 self.optimizer.zero_grad()
                 outputs = self.model(inputs)
@@ -184,7 +191,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch MalConv Training')
     parser.add_argument('-r', '--resume', action='store_true', help='resume from save')
     parser.add_argument('-t', '--test_only', action='store_true', help='Test only')
-    parser.add_argument('-l', '--learning_rate', default=1e-2, type=float, help='learning rate')
+    parser.add_argument('-l', '--learning_rate', default=3e-3, type=float, help='learning rate')
     parser.add_argument('-b', '--first_n_byte', default=8000000, type=int, help='First n bytes to read from binary')
     parser.add_argument('-x', '--experiment', default=1, help='Experiment number')
     parser.add_argument('-lp', '--log_path', default='logs', help='Path that log files stored')

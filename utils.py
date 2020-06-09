@@ -189,6 +189,21 @@ def dataloader(first_n_byte):
     return train_dataset, test_dataset, train_dataloader, test_dataloader
 
 
+def update_lr(optimizer, epoch, epochs, lr, step, total_step):
+    if epoch < epochs[0]:
+        lr = lr * (step + 1 + total_step * epoch) / (total_step * epochs[0])
+    elif epoch >= epochs[-1]:
+        lr = None
+    else:
+        for s in epochs[1:]:
+            if s < epoch:
+                lr /= 10
+
+    for param_group in optimizer.param_groups:
+        param_group["lr"] = lr
+    return lr
+
+
 def get_torch_vars(x, var=True, requires_grad=True):
     if torch.cuda.is_available():
         x = x.cuda()
