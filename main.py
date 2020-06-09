@@ -23,6 +23,7 @@ class AndroConv:
     test_loss = 0
 
     pred = None
+    confusion_matrix = None
 
     def __init__(self, args):
         self.initial_lr = args.learning_rate
@@ -103,8 +104,9 @@ class AndroConv:
                 self.optimizer.step()
 
                 self.train_loss += loss.item()
+                predicted = (outputs + 0.5).int()
                 total += targets.size(0)
-                correct += ((outputs + 0.5).int() == targets).sum().item()
+                correct += (predicted == targets).sum().item()
                 self.pred.append(outputs.cpu().data.numpy())
 
             msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
@@ -125,6 +127,7 @@ class AndroConv:
         correct = 0
         total = 0
         self.pred = []
+        self.confusion_matrix = torch.zeros(2, 2)
         with torch.no_grad():
             self.progress_bar.newbar(len(self.testloader))
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
@@ -136,9 +139,13 @@ class AndroConv:
                     loss = self.criterion(outputs.double(), targets.double())
 
                     self.test_loss += loss.item()
+                    predicted = (outputs + 0.5).int()
                     total += targets.size(0)
-                    correct += ((outputs + 0.5).int() == targets).sum().item()
+                    correct += (predicted == targets).sum().item()
                     self.pred.append(outputs.cpu().data.numpy())
+
+                    for t, p in zip(targets.view(-1), predicted.view(-1)):
+                        self.confusion_matrix[t.long(), p.long()] += 1
 
                 msg = self.step_msg % (Utils.format_time(self.chrono.last('step_time')),
                                        Utils.format_time(self.chrono.total('step_time')),
@@ -179,7 +186,8 @@ class AndroConv:
         test_pred = [item for sublist in list(self.pred) for item in sublist]
         with open('./%s/%s_%s.pred' % (self.log_path, self.modelName, self.experiment), 'w') as f:
             for pred in test_pred:
-                print(str(pred[0]), file=f)
+                print('%.5f' % pred[0], file=f)
+        print(self.confusion_matrix)
 
     def log(self):
         self.logger.write(self.log_msg.format(self.epoch + 1,
