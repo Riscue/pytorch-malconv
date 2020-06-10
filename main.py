@@ -203,7 +203,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch MalConv Training')
     parser.add_argument('-r', '--resume', action='store_true', help='resume from save')
     parser.add_argument('-t', '--test_only', action='store_true', help='Test only')
-    parser.add_argument('-l', '--learning_rate', default=1e-3, type=float, help='learning rate')
+    parser.add_argument('-l', '--learning_rate', default=3e-4, type=float, help='learning rate')
     parser.add_argument('-b', '--first_n_byte', default=8000000, type=int, help='First n bytes to read from binary')
     parser.add_argument('-x', '--experiment', default=1, help='Experiment number')
     parser.add_argument('-lp', '--log_path', default='logs', help='Path that log files stored')
