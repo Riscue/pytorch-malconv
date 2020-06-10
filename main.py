@@ -12,7 +12,7 @@ class AndroConv:
     log_msg = '{}, {:.2f}, {:.10f}, {:.6f}, {:.4f}, {:.6f}, {:.4f}\n'
     step_msg = 'Step: %s | Tot: %s | Lr: %.5f | Loss: %.3f | Acc: %.3f%% (%d/%d)'
 
-    epochs = [1, 5, 10, 15, 20]
+    epochs = [1, 3, 5]
     classes = ('benign', 'malware')
     epoch = 0
 
