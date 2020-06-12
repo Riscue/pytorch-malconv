@@ -30,6 +30,7 @@ class AndroConv:
         self.initial_lr = args.learning_rate
         self.lr = args.learning_rate
         self.test_only = args.test_only
+        self.dump_statistics = args.dump_statistics
         self.modelName = "malconv"
         self.experiment = args.experiment
         self.log_path = args.log_path
@@ -54,7 +55,7 @@ class AndroConv:
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
-        if args.resume:
+        if args.resume or self.test_only or self.dump_statistics:
             self.load()
 
         self.criterion = torch.nn.BCELoss()
@@ -65,6 +66,10 @@ class AndroConv:
     def run(self):
         if self.test_only:
             self.test()
+        elif self.dump_statistics:
+            self.test()
+            self.dump_cmx()
+            self.dump_measurements()
         else:
             for epoch in range(self.epoch, self.epochs[-1]):
                 self.epoch = epoch
@@ -88,8 +93,8 @@ class AndroConv:
         self.progress_bar.newbar(len(self.trainloader))
         for batch_idx, (inputs, targets) in enumerate(self.trainloader):
             with self.chrono.measure("step_time"):
-                inputs = get_torch_vars(inputs, requires_grad=False)
-                targets = get_torch_vars(targets, requires_grad=False)
+                inputs = get_torch_vars(inputs)
+                targets = get_torch_vars(targets)
 
                 self.lr = update_lr(self.optimizer,
                                     self.epoch, self.epochs,
@@ -133,8 +138,8 @@ class AndroConv:
             self.progress_bar.newbar(len(self.testloader))
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
                 with self.chrono.measure("step_time"):
-                    inputs = get_torch_vars(inputs, requires_grad=False)
-                    targets = get_torch_vars(targets, requires_grad=False)
+                    inputs = get_torch_vars(inputs)
+                    targets = get_torch_vars(targets)
 
                     outputs = self.model(inputs)
                     loss = self.criterion(outputs.double(), targets.double())
@@ -184,10 +189,17 @@ class AndroConv:
             os.mkdir('./%s' % self.save_path)
         torch.save(state, './%s/%s_%s.pth' % (self.save_path, self.modelName, self.experiment))
 
+        self.dump_predictions()
+        self.dump_cmx()
+        self.dump_measurements()
+
+    def dump_predictions(self):
         test_pred = [item for sublist in list(self.pred) for item in sublist]
         with open('./%s/%s_%s.pred' % (self.save_path, self.modelName, self.experiment), 'w') as f:
             for pred in test_pred:
                 print('%.5f' % pred[0], file=f)
+
+    def dump_cmx(self):
         with open('./%s/%s_%s.cmx' % (self.save_path, self.modelName, self.experiment), 'w') as f:
             print(self.confusion_matrix.cpu().data.numpy(), file=f)
 
@@ -198,11 +210,25 @@ class AndroConv:
                                               self.train_loss / len(self.trainloader), self.train_acc,
                                               self.test_loss / len(self.testloader), self.test_acc))
 
+    def dump_measurements(self):
+        with open('./%s/%s_%s.mea' % (self.save_path, self.modelName, self.experiment), 'w') as f:
+            tp = self.confusion_matrix.diag()
+            for c in range(len(self.classes)):
+                idx = torch.ones(len(self.classes)).byte()
+                idx[c] = 0
+
+                tn = self.confusion_matrix[idx.nonzero()[:, None], idx.nonzero()].sum()
+                fp = self.confusion_matrix[idx, c].sum()
+                fn = self.confusion_matrix[c, idx].sum()
+
+                print('Class {}\nTP {}, TN {}, FP {}, FN {}'.format(c, tp[c], tn, fp, fn), file=f)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch MalConv Training')
     parser.add_argument('-r', '--resume', action='store_true', help='resume from save')
     parser.add_argument('-t', '--test_only', action='store_true', help='Test only')
+    parser.add_argument('-s', '--dump_statistics', action='store_true', help='Test and save all statistics')
     parser.add_argument('-l', '--learning_rate', default=3e-4, type=float, help='learning rate')
     parser.add_argument('-b', '--first_n_byte', default=8000000, type=int, help='First n bytes to read from binary')
     parser.add_argument('-x', '--experiment', default=1, help='Experiment number')
