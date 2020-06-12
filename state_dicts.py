@@ -8,7 +8,7 @@ import tqdm
 
 
 class StateDicts:
-    url = "https://cloud.riscue.xyz/s/zn7ipk4gR2AAoCa/download"  # TODO: Broken save file url
+    url = "https://cloud.riscue.xyz/s/73nNyf6GjXBNpQd/download"
 
     def run(self, args):
         if args.backup:
