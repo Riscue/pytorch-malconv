@@ -35,18 +35,26 @@ def method_name(csv_file_name, path, malwares, benigns):
     progress_bar.newbar(total_malwares, 'Malware')
     for i in range(total_malwares):
         with chrono.measure('step'):
-            malware_hash = md5('%s/%s' % (malware_path, malwares[i]))
-            csv_file.write('%s,1\n' % malware_hash)
-            extract_dex('%s/%s' % (malware_path, malwares[i]), '%s/%s' % (path, malware_hash))
+            try:
+                malware_hash = md5('%s/%s' % (malware_path, malwares[i]))
+                extract_dex('%s/%s' % (malware_path, malwares[i]), '%s/%s' % (path, malware_hash))
+                csv_file.write('%s,1\n' % malware_hash)
+            except zipfile.BadZipFile as e:
+                print(malwares[i])
+                print(e)
         progress_bar.update(i, 'Malware | Time: %s' % Utils.format_time(chrono.last('step')))
 
     total_benigns = len(benigns)
     progress_bar.newbar(total_benigns, 'Benign')
     for i in range(total_benigns):
         with chrono.measure('step'):
-            benign_hash = md5('%s/%s' % (benign_path, benigns[i]))
-            csv_file.write('%s,0\n' % benign_hash)
-            extract_dex('%s/%s' % (benign_path, benigns[i]), '%s/%s' % (path, benign_hash))
+            try:
+                benign_hash = md5('%s/%s' % (benign_path, benigns[i]))
+                extract_dex('%s/%s' % (benign_path, benigns[i]), '%s/%s' % (path, benign_hash))
+                csv_file.write('%s,0\n' % benign_hash)
+            except zipfile.BadZipFile as e:
+                print(benigns[i])
+                print(e)
         progress_bar.update(i, 'Benign | Time: %s' % Utils.format_time(chrono.last('step')))
     csv_file.close()
 
